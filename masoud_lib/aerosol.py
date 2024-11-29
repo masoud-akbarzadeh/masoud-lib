@@ -385,4 +385,37 @@ def calculate_coagulation_coefficient(
 
     air = Fluid(FluidsList.Air).with_state(
         Input.pressure(STANDARD_PRESSURE),
-        Input.temperature(
+        Input.temperature(temperature - 273.15)
+    )
+    viscosity_air = air.dynamic_viscosity  # Pa·s
+
+    cunningham_factors1 = np.array([calc_cunningham_correction_factor(dp) for dp in dp1_array])
+    cunningham_factors2 = np.array([calc_cunningham_correction_factor(dp) for dp in dp2_array])
+    diffusion_coefficient1 = BOLTZMANN_CONSTANT * temperature * cunningham_factors1 / (3 * np.pi * viscosity_air * dp1_array)
+    diffusion_coefficient2 = BOLTZMANN_CONSTANT * temperature * cunningham_factors2 / (3 * np.pi * viscosity_air * dp2_array)
+
+    mass1 = density_particle1 * np.pi * dp1_array ** 3 / 6
+    mass2 = density_particle2 * np.pi * dp2_array ** 3 / 6
+
+    mean_speed1 = np.sqrt(8 * BOLTZMANN_CONSTANT * temperature / (np.pi * mass1))
+    mean_speed2 = np.sqrt(8 * BOLTZMANN_CONSTANT * temperature / (np.pi * mass2))
+
+    mean_free_path1 = 8 * diffusion_coefficient1 / (np.pi * mean_speed1)
+    mean_free_path2 = 8 * diffusion_coefficient2 / (np.pi * mean_speed2)
+
+    g1 = 1 / (3 * dp1_array * mean_free_path1) * (
+        (dp1_array + mean_free_path1) ** 3 - (dp1_array ** 2 + mean_free_path1 ** 2) ** (1.5)
+    ) - dp1_array
+    g2 = 1 / (3 * dp2_array * mean_free_path2) * (
+        (dp2_array + mean_free_path2) ** 3 - (dp2_array ** 2 + mean_free_path2 ** 2) ** (1.5)
+    ) - dp2_array
+
+    denominator = (
+        ((dp1_array + dp2_array) / (dp1_array + dp2_array + 2 * np.sqrt(g1 ** 2 + g2 ** 2))) +
+        8 * (diffusion_coefficient1 + diffusion_coefficient2) /
+        np.sqrt(mean_speed1 ** 2 + mean_speed2 ** 2) / (dp1_array + dp2_array)
+    )
+
+    coagulation_coefficient = 2 * np.pi * (dp1_array + dp2_array) * (diffusion_coefficient1 + diffusion_coefficient2) / denominator
+
+    return coagulation_coefficient
