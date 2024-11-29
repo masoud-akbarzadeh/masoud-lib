@@ -193,7 +193,7 @@ def calc_condensation_diameter_growth_rate(
     """
     # The variables vapor_concentration_bulk (c_inf) and vapor_concentration_saturation (c_saturation)
     # represent the vapor concentration far from the particle and at the particle surface, respectively.
-    beta_factor = beta_correction_condensation(particle_diameter)
+    beta_factor = calc_beta_correction_condensation(particle_diameter)
     diameter_growth_rate = beta_factor * 4 * diffusion_coefficient * \
         (vapor_concentration_bulk - vapor_concentration_saturation) / (density_particle * particle_diameter)
     return diameter_growth_rate
@@ -227,12 +227,12 @@ def calc_condensation_mass_growth_rate(
         Mass growth rate in kilograms per second (SI units).
     """
     # The mass growth rate due to condensation is calculated using Fick's law of diffusion.
-    beta_factor = beta_correction_condensation(particle_diameter)
+    beta_factor = calc_beta_correction_condensation(particle_diameter)
     mass_growth_rate = 2 * np.pi * diffusion_coefficient_vapor * particle_diameter * \
         (vapor_concentration_bulk - vapor_concentration_saturation) * beta_factor
     return mass_growth_rate
 
-def beta_correction_condensation(particle_diameter, mean_free_path=65e-9):
+def calc_beta_correction_condensation(particle_diameter, mean_free_path=65e-9):
     """
     Calculate the Dahneke correction factor for condensation.
 
@@ -294,7 +294,7 @@ def convert_units(conversion_key, value=1):
     }
     return conversion_dict.get(conversion_key, 'Invalid conversion')
 
-def cal_mass_particle_from_diameter(particle_diameter, density_particle=1e3):
+def calc_mass_particle_from_diameter(particle_diameter, density_particle=1e3):
     """
     Calculate the mass of a spherical particle from its diameter.
 
@@ -313,7 +313,7 @@ def cal_mass_particle_from_diameter(particle_diameter, density_particle=1e3):
     particle_mass = np.pi * density_particle * particle_diameter ** 3 / 6
     return particle_mass
 
-def cal_volume_sphere(diameter):
+def calc_volume_sphere(diameter):
     """
     Calculate the volume of a sphere given its diameter.
 
