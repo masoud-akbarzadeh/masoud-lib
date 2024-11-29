@@ -55,14 +55,15 @@ def update_google_sheet(functions_data):
     sheet = service.spreadsheets()
 
     # Prepare data for the sheet
-    data = [['Module', 'Function Name', 'Description', 'Parameters', 'Returns']]
+    # Modified the order of 'Parameters' and 'Returns'
+    data = [['Module', 'Function Name', 'Description', 'Returns', 'Parameters']]
     for func in functions_data:
         row = [
             func['module'],
             func['name'],
             func['description'],
-            '\n'.join(func['parameters']),
-            func['returns']
+            func['returns'],
+            '\n'.join(func['parameters'])
         ]
         data.append(row)
 
