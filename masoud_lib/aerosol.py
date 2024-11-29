@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def c_cunningham(d_p: float, mean_free_path: float = 65e-9) -> float:
     """
     Calculate the Cunningham correction factor.
@@ -19,7 +22,7 @@ def c_cunningham(d_p: float, mean_free_path: float = 65e-9) -> float:
     >>> c_cunningham(1e-6)
     1.0000814
     """
-    kn = 2 * lamda / d_p
+    kn = 2 * mean_free_path / d_p
     return 1 + kn * (1.257 + 0.4 * np.exp(-1.1 / kn))
 
 
