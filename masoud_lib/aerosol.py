@@ -331,7 +331,7 @@ def calculate_sphere_volume(diameter):
     volume = (4 / 3) * np.pi * radius ** 3
     return volume
 
-def calculate_sphere_surface_area(diameter):
+def calc_surface_area_sphere(diameter):
     """
     Calculate the surface area of a sphere given its diameter.
 
@@ -349,7 +349,7 @@ def calculate_sphere_surface_area(diameter):
     surface_area = 4 * np.pi * radius ** 2
     return surface_area
 
-def calculate_coagulation_coefficient(
+def calc_coagulation_coefficient(
     particle_diameter1,
     particle_diameter2,
     temperature=STANDARD_TEMPERATURE,
