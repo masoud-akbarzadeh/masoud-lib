@@ -3,7 +3,7 @@ name: Update Google Sheet
 on:
   push:
     branches:
-      - main  # or your default branch
+      - master  # or your default branch
   workflow_dispatch:
 
 jobs:
