@@ -294,7 +294,7 @@ def convert_units(conversion_key, value=1):
     }
     return conversion_dict.get(conversion_key, 'Invalid conversion')
 
-def calculate_particle_mass_from_diameter(particle_diameter, density_particle=1e3):
+def cal_mass_particle_from_diameter(particle_diameter, density_particle=1e3):
     """
     Calculate the mass of a spherical particle from its diameter.
 
@@ -313,7 +313,7 @@ def calculate_particle_mass_from_diameter(particle_diameter, density_particle=1e
     particle_mass = np.pi * density_particle * particle_diameter ** 3 / 6
     return particle_mass
 
-def calculate_sphere_volume(diameter):
+def cal_volume_sphere(diameter):
     """
     Calculate the volume of a sphere given its diameter.
 
