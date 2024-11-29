@@ -1,11 +1,24 @@
-def c_cunningham(d_p # particle diameter in meters
-                 ,lamda=65E-9 # mean free path of the gas in meters
-                 ):
-    # defining the function
-    # Cunningham correction factor
-    # Dp is the particle diameter in meters
-    # lamda is the mean free path of the gas in meters
-    # C is the Cunningham correction factor
+def c_cunningham(d_p: float, mean_free_path: float = 65e-9) -> float:
+    """
+    Calculate the Cunningham correction factor.
+
+    Parameters
+    ----------
+    d_p : float
+        Particle diameter in meters.
+    mean_free_path : float, optional
+        Mean free path of the gas in meters. Default is 65e-9 m.
+
+    Returns
+    -------
+    float
+        Cunningham correction factor (dimensionless).
+
+    Examples
+    --------
+    >>> c_cunningham(1e-6)
+    1.0000814
+    """
     kn = 2 * lamda / d_p
     return 1 + kn * (1.257 + 0.4 * np.exp(-1.1 / kn))
 
