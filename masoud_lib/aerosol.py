@@ -34,7 +34,12 @@ def calc_cunningham_correction_factor(particle_diameter, mean_free_path=65e-9):
     particle_diameter : float
         Particle diameter in meters (SI units).
     mean_free_path : float, optional
-        Mean free path of the gas in meters (SI units). Default is 65e-9 m.
+        Mean free path of the gas in meters (SI units).
+
+    Default Values
+    --------------
+    mean_free_path : float
+        Default is 65e-9 m.
 
     Returns
     -------
@@ -87,9 +92,16 @@ def calc_reynolds_particle(
     velocity : float
         Particle velocity in meters per second (SI units).
     fluid_density : float, optional
-        Density of the fluid in kg/m³ (SI units). Default is standard air density.
+        Density of the fluid in kg/m³ (SI units).
     dynamic_viscosity : float, optional
-        Dynamic viscosity of the fluid in Pa·s (SI units). Default is standard air viscosity.
+        Dynamic viscosity of the fluid in Pa·s (SI units).
+
+    Default Values
+    --------------
+    fluid_density : float
+        Default is standard air density.
+    dynamic_viscosity : float
+        Default is standard air dynamic viscosity.
 
     Returns
     -------
@@ -130,26 +142,26 @@ def calc_settling_velocity_stokes(
         particle_diameter_array = particle_diameter
 
     velocities = []
-    for dp in particle_diameter_array:
+    for pd in particle_diameter_array:
         g = GRAVITY_ACCELERATION  # m/s²
         mean_free_path = calc_mean_free_path_air(temperature, pressure)
-        cunningham_factor = calc_cunningham_correction_factor(dp, mean_free_path)
+        cunningham_factor = calc_cunningham_correction_factor(pd, mean_free_path)
         air = Fluid(FluidsList.Air).with_state(
             Input.pressure(pressure),
             Input.temperature(temperature - 273.15)
         )
         mu_f = air.dynamic_viscosity
         rho_f = air.density
-        s_velocity = cunningham_factor * (density_particle * g * dp ** 2) / (18 * mu_f)
-        Re = calc_reynolds_particle(dp, s_velocity, fluid_density=rho_f, dynamic_viscosity=mu_f)
+        s_velocity = cunningham_factor * (density_particle * g * pd ** 2) / (18 * mu_f)
+        Re = calc_reynolds_particle(pd, s_velocity, fluid_density=rho_f, dynamic_viscosity=mu_f)
         if Re < 1:
             velocities.append(s_velocity)
         else:
-            m_p = np.pi * density_particle * dp ** 3 / 6
+            m_p = np.pi * density_particle * pd ** 3 / 6
             for _ in range(100):
                 c_d = 24 / Re * (1 + 3 / 16 * 0.43 * Re)
-                s_velocity = np.sqrt((m_p * g) / (1 / 8 * np.pi * c_d * rho_f * dp ** 2))
-                Re_new = calc_reynolds_particle(dp, s_velocity, fluid_density=rho_f, dynamic_viscosity=mu_f)
+                s_velocity = np.sqrt((m_p * g) / (1 / 8 * np.pi * c_d * rho_f * pd ** 2))
+                Re_new = calc_reynolds_particle(pd, s_velocity, fluid_density=rho_f, dynamic_viscosity=mu_f)
                 if abs(Re_new - Re) < 0.01:
                     break
                 else:
@@ -178,21 +190,26 @@ def calc_condensation_diameter_growth_rate(
     particle_diameter : float
         Particle diameter in meters (SI units).
     vapor_concentration_bulk : float
-        Concentration of the condensing vapor in the bulk gas in molecules per cubic meter (SI units).
+        Concentration of the condensing vapor in the bulk gas (far from the particle) in molecules per cubic meter (SI units).
+        Represents the ambient vapor concentration, also known as c_inf.
     vapor_concentration_saturation : float
         Saturation concentration of the condensing vapor at the particle surface in molecules per cubic meter (SI units).
+        Represents the vapor concentration at equilibrium, also known as c_saturation.
     diffusion_coefficient : float
         Diffusion coefficient of the condensing vapor in m²/s (SI units).
     density_particle : float, optional
-        Density of the particle in kg/m³ (SI units). Default is 1e3 kg/m³.
+        Density of the particle in kg/m³ (SI units).
+
+    Default Values
+    --------------
+    density_particle : float
+        Default is 1e3 kg/m³.
 
     Returns
     -------
     float
         Diameter growth rate in meters per second (SI units).
     """
-    # The variables vapor_concentration_bulk (c_inf) and vapor_concentration_saturation (c_saturation)
-    # represent the vapor concentration far from the particle and at the particle surface, respectively.
     beta_factor = calc_beta_correction_condensation(particle_diameter)
     diameter_growth_rate = beta_factor * 4 * diffusion_coefficient * \
         (vapor_concentration_bulk - vapor_concentration_saturation) / (density_particle * particle_diameter)
@@ -213,20 +230,26 @@ def calc_condensation_mass_growth_rate(
     particle_diameter : float
         Particle diameter in meters (SI units).
     vapor_concentration_bulk : float
-        Concentration of the condensing vapor in the bulk gas in molecules per cubic meter (SI units).
+        Concentration of the condensing vapor in the bulk gas (far from the particle) in molecules per cubic meter (SI units).
+        Represents the ambient vapor concentration, also known as c_inf.
     vapor_concentration_saturation : float
         Saturation concentration of the condensing vapor at the particle surface in molecules per cubic meter (SI units).
+        Represents the vapor concentration at equilibrium, also known as c_saturation.
     diffusion_coefficient_vapor : float
         Diffusion coefficient of the condensing vapor in m²/s (SI units).
     density_particle : float, optional
-        Density of the particle in kg/m³ (SI units). Default is 1e3 kg/m³.
+        Density of the particle in kg/m³ (SI units).
+
+    Default Values
+    --------------
+    density_particle : float
+        Default is 1e3 kg/m³.
 
     Returns
     -------
     float
         Mass growth rate in kilograms per second (SI units).
     """
-    # The mass growth rate due to condensation is calculated using Fick's law of diffusion.
     beta_factor = calc_beta_correction_condensation(particle_diameter)
     mass_growth_rate = 2 * np.pi * diffusion_coefficient_vapor * particle_diameter * \
         (vapor_concentration_bulk - vapor_concentration_saturation) * beta_factor
@@ -241,7 +264,12 @@ def calc_beta_correction_condensation(particle_diameter, mean_free_path=65e-9):
     particle_diameter : float
         Particle diameter in meters (SI units).
     mean_free_path : float, optional
-        Mean free path of the gas in meters (SI units). Default is 65e-9 m.
+        Mean free path of the gas in meters (SI units).
+
+    Default Values
+    --------------
+    mean_free_path : float
+        Default is 65e-9 m.
 
     Returns
     -------
@@ -261,7 +289,12 @@ def convert_units(conversion_key, value=1):
     conversion_key : str
         Key representing the conversion (e.g., 'cm3_to_m3').
     value : float, optional
-        Value to be converted. Default is 1.
+        Value to be converted.
+
+    Default Values
+    --------------
+    value : float
+        Default is 1.
 
     Returns
     -------
@@ -303,7 +336,12 @@ def calc_mass_particle_from_diameter(particle_diameter, density_particle=1e3):
     particle_diameter : float
         Particle diameter in meters (SI units).
     density_particle : float, optional
-        Density of the particle in kg/m³ (SI units). Default is 1e3 kg/m³.
+        Density of the particle in kg/m³ (SI units).
+
+    Default Values
+    --------------
+    density_particle : float
+        Default is 1e3 kg/m³.
 
     Returns
     -------
@@ -366,11 +404,20 @@ def calc_coagulation_coefficient(
     particle_diameter2 : float
         Diameter of particle 2 in meters (SI units).
     temperature : float, optional
-        Temperature in Kelvin (SI units). Default is standard temperature.
+        Temperature in Kelvin (SI units).
     density_particle1 : float, optional
-        Density of particle 1 in kg/m³ (SI units). Default is 1000 kg/m³.
+        Density of particle 1 in kg/m³ (SI units).
     density_particle2 : float, optional
-        Density of particle 2 in kg/m³ (SI units). Default is 1000 kg/m³.
+        Density of particle 2 in kg/m³ (SI units).
+
+    Default Values
+    --------------
+    temperature : float
+        Default is standard temperature (298.15 K).
+    density_particle1 : float
+        Default is 1000 kg/m³.
+    density_particle2 : float
+        Default is 1000 kg/m³.
 
     Returns
     -------
@@ -380,8 +427,8 @@ def calc_coagulation_coefficient(
     # Source: Seinfeld, J. H., & Pandis, S. N. (2006). Atmospheric Chemistry and Physics.
     # 2nd Edition, Table 13.1
 
-    dp1_array = np.array([particle_diameter1])
-    dp2_array = np.array([particle_diameter2])
+    particle_diameter1_array = np.array([particle_diameter1])
+    particle_diameter2_array = np.array([particle_diameter2])
 
     air = Fluid(FluidsList.Air).with_state(
         Input.pressure(STANDARD_PRESSURE),
@@ -389,13 +436,21 @@ def calc_coagulation_coefficient(
     )
     viscosity_air = air.dynamic_viscosity  # Pa·s
 
-    cunningham_factors1 = np.array([calc_cunningham_correction_factor(dp) for dp in dp1_array])
-    cunningham_factors2 = np.array([calc_cunningham_correction_factor(dp) for dp in dp2_array])
-    diffusion_coefficient1 = BOLTZMANN_CONSTANT * temperature * cunningham_factors1 / (3 * np.pi * viscosity_air * dp1_array)
-    diffusion_coefficient2 = BOLTZMANN_CONSTANT * temperature * cunningham_factors2 / (3 * np.pi * viscosity_air * dp2_array)
+    cunningham_factors1 = np.array([
+        calc_cunningham_correction_factor(diameter) for diameter in particle_diameter1_array
+    ])
+    cunningham_factors2 = np.array([
+        calc_cunningham_correction_factor(diameter) for diameter in particle_diameter2_array
+    ])
+    diffusion_coefficient1 = BOLTZMANN_CONSTANT * temperature * cunningham_factors1 / (
+        3 * np.pi * viscosity_air * particle_diameter1_array
+    )
+    diffusion_coefficient2 = BOLTZMANN_CONSTANT * temperature * cunningham_factors2 / (
+        3 * np.pi * viscosity_air * particle_diameter2_array
+    )
 
-    mass1 = density_particle1 * np.pi * dp1_array ** 3 / 6
-    mass2 = density_particle2 * np.pi * dp2_array ** 3 / 6
+    mass1 = density_particle1 * np.pi * particle_diameter1_array ** 3 / 6
+    mass2 = density_particle2 * np.pi * particle_diameter2_array ** 3 / 6
 
     mean_speed1 = np.sqrt(8 * BOLTZMANN_CONSTANT * temperature / (np.pi * mass1))
     mean_speed2 = np.sqrt(8 * BOLTZMANN_CONSTANT * temperature / (np.pi * mass2))
@@ -403,19 +458,23 @@ def calc_coagulation_coefficient(
     mean_free_path1 = 8 * diffusion_coefficient1 / (np.pi * mean_speed1)
     mean_free_path2 = 8 * diffusion_coefficient2 / (np.pi * mean_speed2)
 
-    g1 = 1 / (3 * dp1_array * mean_free_path1) * (
-        (dp1_array + mean_free_path1) ** 3 - (dp1_array ** 2 + mean_free_path1 ** 2) ** (1.5)
-    ) - dp1_array
-    g2 = 1 / (3 * dp2_array * mean_free_path2) * (
-        (dp2_array + mean_free_path2) ** 3 - (dp2_array ** 2 + mean_free_path2 ** 2) ** (1.5)
-    ) - dp2_array
+    g1 = 1 / (3 * particle_diameter1_array * mean_free_path1) * (
+        (particle_diameter1_array + mean_free_path1) ** 3 -
+        (particle_diameter1_array ** 2 + mean_free_path1 ** 2) ** (1.5)
+    ) - particle_diameter1_array
+    g2 = 1 / (3 * particle_diameter2_array * mean_free_path2) * (
+        (particle_diameter2_array + mean_free_path2) ** 3 -
+        (particle_diameter2_array ** 2 + mean_free_path2 ** 2) ** (1.5)
+    ) - particle_diameter2_array
 
     denominator = (
-        ((dp1_array + dp2_array) / (dp1_array + dp2_array + 2 * np.sqrt(g1 ** 2 + g2 ** 2))) +
+        ((particle_diameter1_array + particle_diameter2_array) /
+         (particle_diameter1_array + particle_diameter2_array + 2 * np.sqrt(g1 ** 2 + g2 ** 2))) +
         8 * (diffusion_coefficient1 + diffusion_coefficient2) /
-        np.sqrt(mean_speed1 ** 2 + mean_speed2 ** 2) / (dp1_array + dp2_array)
+        np.sqrt(mean_speed1 ** 2 + mean_speed2 ** 2) / (particle_diameter1_array + particle_diameter2_array)
     )
 
-    coagulation_coefficient = 2 * np.pi * (dp1_array + dp2_array) * (diffusion_coefficient1 + diffusion_coefficient2) / denominator
+    coagulation_coefficient = 2 * np.pi * (particle_diameter1_array + particle_diameter2_array) * \
+        (diffusion_coefficient1 + diffusion_coefficient2) / denominator
 
     return coagulation_coefficient
