@@ -29,8 +29,9 @@ def get_functions_from_file(file_path):
             func_info = {}
             func_info['module'] = os.path.basename(file_path)
             func_info['name'] = node.name
-            func_info['parameters'] = []  # List of dicts with 'name_type' and 'description'
-            func_info['returns'] = ''
+            func_info['parameters'] = []  # List of dicts with 'name', 'type', and 'description'
+            func_info['return_type'] = ''
+            func_info['return_description'] = ''
             func_info['description'] = ''
             # Get the function's docstring
             docstring = ast.get_docstring(node)
@@ -40,15 +41,18 @@ def get_functions_from_file(file_path):
                 func_info['description'] = parsed_docstring.short_description or ''
                 # Extract parameters
                 for param in parsed_docstring.params:
-                    param_name_type = f"{param.arg_name}: {param.type_name or ''}"
+                    param_name = param.arg_name or ''
+                    param_type = param.type_name or ''
                     param_description = param.description or ''
                     func_info['parameters'].append({
-                        'name_type': param_name_type,
+                        'name': param_name,
+                        'type': param_type,
                         'description': param_description
                     })
                 # Extract return type and description
                 if parsed_docstring.returns:
-                    func_info['returns'] = f"{parsed_docstring.returns.type_name or ''} - {parsed_docstring.returns.description or ''}"
+                    func_info['return_type'] = parsed_docstring.returns.type_name or ''
+                    func_info['return_description'] = parsed_docstring.returns.description or ''
             else:
                 func_info['description'] = ''
             functions.append(func_info)
@@ -59,17 +63,23 @@ def update_google_sheet(functions_data):
     sheet = service.spreadsheets()
 
     # Prepare data for the sheet
-    data = [['Module', 'Function Name', 'Description', 'Returns', 'Parameters', 'Parameter Descriptions']]
+    data = [['Module', 'Function Name', 'Description',
+             'Return Type', 'Return Description',
+             'Parameters', 'Parameter Types', 'Parameter Descriptions']]
     for func in functions_data:
-        # Separate parameters into names/types and descriptions
-        param_names_types = '\n'.join([p['name_type'] for p in func['parameters']])
+        # Separate parameters into names, types, and descriptions
+        param_names = '\n'.join([p['name'] for p in func['parameters']])
+        param_types = '\n'.join([p['type'] for p in func['parameters']])
         param_descriptions = '\n'.join([p['description'] for p in func['parameters']])
+
         row = [
             func['module'],
             func['name'],
             func['description'],
-            func['returns'],
-            param_names_types,
+            func['return_type'],
+            func['return_description'],
+            param_names,
+            param_types,
             param_descriptions
         ]
         data.append(row)
