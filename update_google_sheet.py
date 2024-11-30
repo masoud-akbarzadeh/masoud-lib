@@ -107,8 +107,13 @@ def main():
         for file in files:
             if file.endswith('.py'):
                 path = os.path.join(root, file)
-                # Exclude certain directories if necessary
-                if 'venv' in path or 'tests' in path or '.git' in path:
+                # Exclude certain directories and files if necessary
+                if (
+                    'venv' in path or
+                    'tests' in path or
+                    '.git' in path or
+                    os.path.basename(path) == 'update_google_sheet.py'
+                ):
                     continue
                 functions = get_functions_from_file(path)
                 functions_data.extend(functions)
